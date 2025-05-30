@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Mozzarella Production Dashboard - Detailed Equipment</title>
+    <title>IoT Mozzarella Production Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        /* Base styles for the body and overall container */
+        /* Base styles for dark mode from KPI Dashboard */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a; /* Dark background for a dashboard feel */
-            min-height: 100vh;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            min-height: 100vh; /* Ensure full viewport height */
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
+
+        /* Main dashboard container */
         .dashboard-container {
             width: 100%;
             max-width: 1600px; /* Wider layout for desktop */
@@ -28,16 +31,58 @@
             flex-direction: column;
             overflow: hidden; /* Ensures content respects border-radius */
         }
+
         /* Header styling */
         header {
             background-color: #2c2c2c; /* Darker header background */
             border-bottom: 1px solid #3a3a3a; /* Separator line */
             padding: 1rem 2rem;
             display: flex;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
             justify-content: space-between;
             align-items: center;
             color: #e0e0e0; /* Light text color */
         }
+
+        /* Tab button styling */
+        .tab-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid;
+            color: #e0e0e0;
+            background-color: #3a3a3a;
+            border-color: #4a4a4a;
+        }
+        .tab-button.active {
+            background-color: #4299e1; /* Blue for active state */
+            border-color: #4299e1;
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3); /* Shadow for active state */
+        }
+
+        /* Scenario toggle buttons (Traditional/IoT) */
+        .scenario-toggle-button {
+            padding: 0.4rem 0.8rem; /* Slightly smaller padding */
+            border-radius: 0.4rem; /* Slightly smaller rounded corners */
+            font-weight: 500; /* Slightly lighter weight */
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid;
+            color: #cbd5e0; /* Lighter gray text */
+            background-color: #3a3a3a; /* Same as main tabs, but smaller */
+            border-color: #4a4a4a;
+            font-size: 0.85rem; /* Smaller font size */
+        }
+        .scenario-toggle-button.active {
+            background-color: #4299e1; /* Blue for active state */
+            border-color: #4299e1;
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+            color: #ffffff; /* White text for active state */
+        }
+
+
         /* Equipment card styling */
         .module-card {
             background-color: #2c2c2c;
@@ -56,6 +101,7 @@
             transform: translateY(-2px); /* Slight lift effect */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
         }
+
         /* Status pill styling */
         .status-pill {
             padding: 0.25rem 0.6rem;
@@ -96,24 +142,6 @@
         .metric-label {
             font-size: 0.875rem;
             color: #a0aec0;
-        }
-
-        /* Toggle button styling */
-        .toggle-button {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            border: 1px solid;
-            color: #e0e0e0;
-            background-color: #3a3a3a;
-            border-color: #4a4a4a;
-        }
-        .toggle-button.active {
-            background-color: #4299e1; /* Blue for active state */
-            border-color: #4299e1;
-            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3); /* Shadow for active state */
         }
 
         /* Taskbar (progress bar) item styling */
@@ -192,7 +220,7 @@
             color: #a0aec0;
         }
 
-        /* Modal Styles */
+        /* Modal Styles (for Equipment Details) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -322,6 +350,149 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* KPI Dashboard specific styles (merged and adapted for dark mode) */
+        .kpi-section {
+            margin-bottom: 40px;
+            border: 1px solid #2d3748; /* Darker border */
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #2d3748; /* Darker background */
+        }
+
+        .kpi-section h2 {
+            color: #edf2f7; /* Lighter color for section titles */
+            font-size: 1.8em;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* KPI Grid Layout */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Individual KPI Card Styling */
+        .kpi-card {
+            background-color: #2c2c2c; /* Darker card background */
+            border: 1px solid #4a4a4a; /* Lighter border */
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Darker shadow */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer; /* Indicate clickability */
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+        }
+
+        .kpi-card h3 {
+            color: #cbd5e0; /* Lighter text for titles */
+            font-size: 1.2em;
+            margin-top: 0;
+            margin-bottom: 10px;
+            min-height: 40px; /* Ensures consistent card height for titles */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .kpi-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            /* Colors defined in <style> block directly for .value.good, .moderate, .poor */
+            margin-bottom: 5px;
+        }
+
+        .kpi-card .target {
+            font-size: 0.9em;
+            color: #a0aec0; /* Lighter gray for target text */
+        }
+
+        /* Value status colors (for KPI cards) */
+        .value.good { color: #48bb78; } /* Green */
+        .value.moderate { color: #ecc94b; } /* Yellow */
+        .value.poor { color: #e53e3e; } /* Red */
+
+        /* Footer Styling */
+        .dashboard-footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.8em;
+            color: #a0aec0; /* Lighter gray for footer text */
+        }
+
+        /* Modal specific styles (for KPI details) */
+        #kpiModal.modal-overlay {
+            /* This overrides the 'hidden' class with 'show' to display the modal */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        #kpiModal.modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #kpiModal .modal-content {
+            background-color: #2d3748; /* Darker gray for modal content */
+            color: #e2e8f0; /* Light text */
+        }
+        #kpiModal .modal-title {
+            color: #edf2f7; /* Lighter title color */
+        }
+        #kpiModal .modal-target {
+            color: #a0aec0;
+        }
+        #kpiModal .modal-description {
+            color: #cbd5e0;
+        }
+        #kpiModal .modal-value {
+             font-size: 2.2em;
+             font-weight: bold;
+             margin-bottom: 10px;
+        }
+
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 15px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .kpi-section h2 {
+                font-size: 1.5em;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr; /* Stack cards on small screens */
+            }
+            .kpi-card h3 {
+                font-size: 1.1em;
+            }
+            .kpi-card .value {
+                font-size: 2em;
+            }
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            header .flex:last-child {
+                width: 100%;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -333,74 +504,296 @@
                 <span class="text-gray-400">|</span>
                 <span class="text-xl font-medium">Production Overview</span>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="text-sm text-gray-400">Switch View:</span>
+            <div class="flex items-center gap-4 mt-4 sm:mt-0">
+                <span class="text-sm text-gray-400">View:</span>
                 <div class="flex gap-2">
-                    <button id="toggle-traditional" class="toggle-button">Traditional</button>
-                    <button id="toggle-iot" class="toggle-button active">IoT-Enabled</button>
+                    <button id="tab-equipment" class="tab-button active">Equipment Monitoring</button>
+                    <button id="tab-kpis" class="tab-button">KPI Dashboard</button>
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
-            <div class="col-span-full">
-                <h2 class="section-title mb-4">Detailed Equipment Monitoring</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="equipment-monitoring-grid">
+        <div id="tab-content" class="p-6">
+            <div id="equipment-tab-content" class="tab-pane">
+                <div class="col-span-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="section-title">Detailed Equipment Monitoring</h2>
+                        <div class="flex gap-2">
+                            <button id="toggle-traditional" class="scenario-toggle-button">Traditional</button>
+                            <button id="toggle-iot" class="scenario-toggle-button active">IoT-Enabled</button>
+                        </div>
                     </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="equipment-monitoring-grid">
+                        </div>
+                </div>
+
+                <div class="col-span-full">
+                    <h2 class="section-title mt-6 mb-4">Environmental & Waste Statistics</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="env-waste-stats-grid">
+                        <div class="env-stats-card col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2">
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center text-e0e0e0 mb-2">
+                                    <span class="text-lg font-semibold">Water Reused</span>
+                                    <span id="water-reused-value" class="text-xl font-bold"></span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div id="water-reused-bar" class="progress-bar"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center text-e0e0e0 mb-2">
+                                    <span class="text-lg font-semibold">Energy Saved</span>
+                                    <span id="energy-saved-value" class="text-xl font-bold"></span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div id="energy-saved-bar" class="progress-bar"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center text-e0e0e0 mb-2">
+                                    <span class="text-lg font-semibold">Waste Volume</span>
+                                    <span id="waste-volume-value" class="text-xl font-bold"></span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div id="waste-volume-bar" class="progress-bar"></div>
+                                </div>
+                            </div>
+                            <div id="suggestion-box" class="suggestion-box hidden">
+                                <strong>Suggestion:</strong> <span id="suggestion-text"></span>
+                            </div>
+                        </div>
+
+                        <div class="module-card">
+                            <h3 class="text-lg font-semibold text-white mb-2">Overall Plant Health</h3>
+                            <div class="flex items-center justify-between text-e0e0e0 text-sm">
+                                <span>System Score</span>
+                                <span id="plant-health-score" class="metric-value text-xl"></span>
+                            </div>
+                            <div class="flex items-center justify-between mt-1">
+                                <span id="plant-health-status" class="status-pill status-safe">
+                                    </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="col-span-full">
-                <h2 class="section-title mt-6 mb-4">Environmental & Waste Statistics</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="env-waste-stats-grid">
-                    <div class="env-stats-card col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2">
-                        <div class="mb-4">
-                            <div class="flex justify-between items-center text-e0e0e0 mb-2">
-                                <span class="text-lg font-semibold">Water Reused</span>
-                                <span id="water-reused-value" class="text-xl font-bold"></span>
-                            </div>
-                            <div class="progress-bar-container">
-                                <div id="water-reused-bar" class="progress-bar"></div>
-                            </div>
+            <div id="kpi-tab-content" class="tab-pane hidden">
+                <div class="kpi-section mb-8 p-6 rounded-lg">
+                    <h2>Safety KPIs</h2>
+                    <div class="kpi-grid">
+                        <div class="kpi-card"
+                             data-kpi-title="Incident Rate (TRIR)"
+                             data-kpi-value="0.5"
+                             data-kpi-target="Target: < 1.0"
+                             data-kpi-status-class="good"
+                             data-kpi-description="The Total Recordable Incident Rate (TRIR) measures the number of work-related injuries and illnesses per 100 full-time employees. A lower rate indicates a safer workplace and effective safety programs. Our goal is to minimize all recordable incidents.">
+                            <h3>Incident Rate (TRIR)</h3>
+                            <div class="value good text-4xl font-bold mb-1">0.5</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 1.0</div>
                         </div>
-                        <div class="mb-4">
-                            <div class="flex justify-between items-center text-e0e0e0 mb-2">
-                                <span class="text-lg font-semibold">Energy Saved</span>
-                                <span id="energy-saved-value" class="text-xl font-bold"></span>
-                            </div>
-                            <div class="progress-bar-container">
-                                <div id="energy-saved-bar" class="progress-bar"></div>
-                            </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Lost Time Injury Rate"
+                             data-kpi-value="0.1"
+                             data-kpi-target="Target: < 0.2"
+                             data-kpi-status-class="good"
+                             data-kpi-description="The Lost Time Injury Frequency Rate (LTIFR) tracks injuries that result in an employee being unable to perform their normal duties for at least one full shift. A low LTIFR indicates a strong safety culture and effective injury prevention measures, minimizing disruption to operations.">
+                            <h3>Lost Time Injury Rate</h3>
+                            <div class="value good text-4xl font-bold mb-1">0.1</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 0.2</div>
                         </div>
-                        <div class="mb-4">
-                            <div class="flex justify-between items-center text-e0e0e0 mb-2">
-                                <span class="text-lg font-semibold">Waste Volume</span>
-                                <span id="waste-volume-value" class="text-xl font-bold"></span>
-                            </div>
-                            <div class="progress-bar-container">
-                                <div id="waste-volume-bar" class="progress-bar"></div>
-                            </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Near Misses Reported"
+                             data-kpi-value="12"
+                             data-kpi-target="Target: > 10 (proactive)"
+                             data-kpi-status-class="moderate"
+                             data-kpi-description="Tracking near misses is a proactive safety indicator. A higher number of reported near misses suggests a strong safety culture where employees feel comfortable identifying and reporting potential hazards before they lead to actual incidents. This allows for timely corrective actions.">
+                            <h3>Near Misses Reported</h3>
+                            <div class="value moderate text-4xl font-bold mb-1">12</div>
+                            <div class="target text-sm text-gray-400">Target: &gt; 10 (proactive)</div>
                         </div>
-                        <div id="suggestion-box" class="suggestion-box hidden">
-                            <strong>Suggestion:</strong> <span id="suggestion-text"></span>
+                        <div class="kpi-card"
+                             data-kpi-title="Safety Training Completion"
+                             data-kpi-value="98%"
+                             data-kpi-target="Target: 100%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="This KPI measures the percentage of employees who have completed all required safety training modules. High completion rates ensure that our workforce is well-informed about safety protocols, emergency procedures, and safe operating practices for all equipment, minimizing risks.">
+                            <h3>Safety Training Completion</h3>
+                            <div class="value good text-4xl font-bold mb-1">98%</div>
+                            <div class="target text-sm text-gray-400">Target: 100%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Safety Audit Score"
+                             data-kpi-value="92%"
+                             data-kpi-target="Target: > 90%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="The Safety Audit Score reflects our compliance with internal safety standards and external regulations. Regular audits help identify areas for improvement in safety management systems, ensuring a continuously improving safety environment and adherence to best practices.">
+                            <h3>Safety Audit Score</h3>
+                            <div class="value good text-4xl font-bold mb-1">92%</div>
+                            <div class="target text-sm text-gray-400">Target: &gt; 90%</div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="module-card">
-                        <h3 class="text-lg font-semibold text-white mb-2">Overall Plant Health</h3>
-                        <div class="flex items-center justify-between text-e0e0e0 text-sm">
-                            <span>System Score</span>
-                            <span id="plant-health-score" class="metric-value text-xl"></span>
+                <div class="kpi-section mb-8 p-6 rounded-lg">
+                    <h2>Quality KPIs</h2>
+                    <div class="kpi-grid">
+                        <div class="kpi-card"
+                             data-kpi-title="Yield Percentage"
+                             data-kpi-value="11.5%"
+                             data-kpi-target="Target: > 11%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="Yield percentage measures the efficiency of converting raw milk into finished mozzarella. A higher yield indicates optimized production processes, reduced waste, and better resource utilization, directly impacting profitability.">
+                            <h3>Yield Percentage</h3>
+                            <div class="value good text-4xl font-bold mb-1">11.5%</div>
+                            <div class="target text-sm text-gray-400">Target: &gt; 11%</div>
                         </div>
-                        <div class="flex items-center justify-between mt-1">
-                            <span id="plant-health-status" class="status-pill status-safe">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                                EXCELLENT
-                            </span>
+                        <div class="kpi-card"
+                             data-kpi-title="Moisture Content"
+                             data-kpi-value="48.2%"
+                             data-kpi-target="Target: 47-49%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="Moisture content is a critical parameter for mozzarella, influencing its texture, melt characteristics, and shelf life. Maintaining the target range ensures consistent product quality and adherence to regulatory standards for different mozzarella types.">
+                            <h3>Moisture Content</h3>
+                            <div class="value good text-4xl font-bold mb-1">48.2%</div>
+                            <div class="target text-sm text-gray-400">Target: 47-49%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Fat-in-Dry-Matter (FDM)"
+                             data-kpi-value="45.0%"
+                             data-kpi-target="Target: 44-46%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="Fat-in-Dry-Matter (FDM) is essential for mozzarella's flavor, creaminess, and melting properties. Consistent FDM ensures the cheese performs as expected in culinary applications, particularly for pizza, and meets product specifications.">
+                            <h3>Fat-in-Dry-Matter (FDM)</h3>
+                            <div class="value good text-4xl font-bold mb-1">45.0%</div>
+                            <div class="target text-sm text-gray-400">Target: 44-46%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Final pH"
+                             data-kpi-value="5.25"
+                             data-kpi-target="Target: 5.2-5.4"
+                             data-kpi-status-class="good"
+                             data-kpi-description="Maintaining the correct pH throughout the mozzarella production process, especially the final pH, is crucial for proper curd formation, stretching characteristics (pasta filata), and inhibiting undesirable microbial growth. It directly impacts the cheese's texture and stability.">
+                            <h3>Final pH</h3>
+                            <div class="value good text-4xl font-bold mb-1">5.25</div>
+                            <div class="target text-sm text-gray-400">Target: 5.2-5.4</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Microbiological Compliance"
+                             data-kpi-value="99.9%"
+                             data-kpi-target="Target: 100%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="This KPI tracks the percentage of product batches that meet all microbiological safety standards, indicating the absence of harmful pathogens (e.g., Listeria, E. coli) and spoilage organisms. High compliance is paramount for food safety, consumer health, and regulatory adherence.">
+                            <h3>Microbiological Compliance</h3>
+                            <div class="value good text-4xl font-bold mb-1">99.9%</div>
+                            <div class="target text-sm text-gray-400">Target: 100%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Customer Complaint Rate"
+                             data-kpi-value="0.01%"
+                             data-kpi-target="Target: < 0.05%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="The customer complaint rate measures the percentage of products that lead to customer feedback regarding quality issues. A low rate signifies high customer satisfaction and effective quality control processes, reducing potential product recalls and reputational damage.">
+                            <h3>Customer Complaint Rate</h3>
+                            <div class="value good text-4xl font-bold mb-1">0.01%</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 0.05%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Rework/Defect Rate"
+                             data-kpi-value="0.5%"
+                             data-kpi-target="Target: < 1%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="This KPI tracks the percentage of mozzarella that does not meet quality specifications and requires reprocessing (rework) or is rejected entirely. A low rework/defect rate indicates efficient production, minimal waste, and robust process control, directly impacting cost-effectiveness.">
+                            <h3>Rework/Defect Rate</h3>
+                            <div class="value good text-4xl font-bold mb-1">0.5%</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 1%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Sensory Score"
+                             data-kpi-value="4.5/5"
+                             data-kpi-target="Target: > 4.0"
+                             data-kpi-status-class="good"
+                             data-kpi-description="The Sensory Score is based on evaluations by trained panels or objective instruments, assessing attributes like flavor, aroma, texture (stretch, firmness), and appearance. A high score ensures the mozzarella consistently meets desired consumer characteristics and brand standards.">
+                            <h3>Sensory Score</h3>
+                            <div class="value good text-4xl font-bold mb-1">4.5/5</div>
+                            <div class="target text-sm text-gray-400">Target: &gt; 4.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-section mb-8 p-6 rounded-lg">
+                    <h2>Environmental KPIs</h2>
+                    <div class="kpi-grid">
+                        <div class="kpi-card"
+                             data-kpi-title="Water Usage Intensity"
+                             data-kpi-value="2.8 L/kg"
+                             data-kpi-target="Target: < 3.0 L/kg"
+                             data-kpi-status-class="good"
+                             data-kpi-description="Water Usage Intensity measures the liters of water consumed per kilogram of mozzarella produced. This KPI drives water conservation efforts, identifies areas for efficiency improvements in cleaning (CIP) and processing, and reduces environmental impact.">
+                            <h3>Water Usage Intensity</h3>
+                            <div class="value good text-4xl font-bold mb-1">2.8 L/kg</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 3.0 L/kg</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Energy Consumption Intensity"
+                             data-kpi-value="0.8 kWh/kg"
+                             data-kpi-target="Target: < 1.0 kWh/kg"
+                             data-kpi-status-class="good"
+                             data-kpi-description="Energy Consumption Intensity tracks the kilowatt-hours (kWh) of energy used per kilogram of mozzarella produced. Optimizing this KPI reduces operational costs, lowers the carbon footprint, and promotes the use of more energy-efficient equipment throughout the production process.">
+                            <h3>Energy Consumption Intensity</h3>
+                            <div class="value good text-4xl font-bold mb-1">0.8 kWh/kg</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 1.0 kWh/kg</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Wastewater BOD Load"
+                             data-kpi-value="50 mg/L"
+                             data-kpi-target="Target: < 60 mg/L"
+                             data-kpi-status-class="good"
+                             data-kpi-description="The Biochemical Oxygen Demand (BOD) load in wastewater indicates the amount of oxygen required by microorganisms to decompose organic matter. A lower BOD load signifies effective wastewater treatment, reduced environmental impact, and compliance with discharge regulations.">
+                            <h3>Wastewater BOD Load</h3>
+                            <div class="value good text-4xl font-bold mb-1">50 mg/L</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 60 mg/L</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Solid Waste Diverted"
+                             data-kpi-value="85%"
+                             data-kpi-target="Target: > 80%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="Solid Waste Diverted measures the percentage of non-recycled solid waste that is successfully diverted from landfills through recycling, composting, or other beneficial uses. A higher diversion rate supports sustainability goals and reduces environmental footprint.">
+                            <h3>Solid Waste Diverted</h3>
+                            <div class="value good text-4xl font-bold mb-1">85%</div>
+                            <div class="target text-sm text-gray-400">Target: &gt; 80%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="Whey Valorization Rate"
+                             data-kpi-value="95%"
+                             data-kpi-target="Target: > 90%"
+                             data-kpi-status-class="good"
+                             data-kpi-description="The Whey Valorization Rate represents the percentage of whey byproduct that is converted into value-added products (e.g., proteins, lactose, ethanol, biogas) rather than being treated as waste. A high rate signifies a circular economy approach, reducing waste and creating new revenue streams.">
+                            <h3>Whey Valorization Rate</h3>
+                            <div class="value good text-4xl font-bold mb-1">95%</div>
+                            <div class="target text-sm text-gray-400">Target: &gt; 90%</div>
+                        </div>
+                        <div class="kpi-card"
+                             data-kpi-title="GHG Emissions Intensity"
+                             data-kpi-value="0.35 kg CO2e/kg"
+                             data-kpi-target="Target: < 0.30 kg CO2e/kg"
+                             data-kpi-status-class="moderate"
+                             data-kpi-description="Greenhouse Gas (GHG) Emissions Intensity measures the total CO2 equivalent emissions per kilogram of mozzarella produced. Reducing this KPI is vital for climate action, aligning with global sustainability goals, and improving the environmental footprint of our operations.">
+                            <h3>GHG Emissions Intensity</h3>
+                            <div class="value moderate text-4xl font-bold mb-1">0.35 kg CO2e/kg</div>
+                            <div class="target text-sm text-gray-400">Target: &lt; 0.30 kg CO2e/kg</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="dashboard-footer">
+            <p>&copy; 2025 Mozzarella Production. All rights reserved. Data current as of 2025-05-30.</p>
+        </div>
+
     </div>
 
     <div id="equipment-detail-modal" class="modal-overlay">
@@ -431,6 +824,16 @@
                     <p id="modal-waste-text" class="text-gray-300"></p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="kpiModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-button" id="closeKpiModalBtn">&times;</button>
+            <h2 class="modal-title" id="modalKpiTitle"></h2>
+            <div class="modal-value" id="modalKpiValue"></div>
+            <div class="modal-target" id="modalKpiTarget"></div>
+            <p class="modal-description" id="modalKpiDescription"></p>
         </div>
     </div>
 
@@ -466,235 +869,281 @@
             return history;
         }
 
-        // Data structure for the dashboard cards
-        const dashboardData = {
-            traditional: {
-                milk_reception: {
-                    title: "Milk Reception & Storage",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "45.1 °F", status: "WARNING", statusType: "warning", indicator: "!" },
-                        { label: "Fill Level", value: "95%", status: "OVERFLOW", statusType: "fault", indicator: "X" }
-                    ],
-                    detailMetrics: [], // No detailed taskbars in traditional
-                    hseInfo: "Risk of bacterial growth due to infrequent temperature checks. Potential for overflow spills.",
-                    wasteInfo: "Milk spoilage from inconsistent temperature. Overflow waste during manual transfers."
+        // Combined Data Structure for the entire application
+        const appData = {
+            equipment: {
+                traditional: {
+                    milk_reception: {
+                        title: "Milk Reception & Storage",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "45.1 °F", status: "WARNING", statusType: "warning", indicator: "!" },
+                            { label: "Fill Level", value: "95%", status: "OVERFLOW", statusType: "fault", indicator: "X" }
+                        ],
+                        detailMetrics: [], // No detailed taskbars in traditional
+                        hseInfo: "Risk of bacterial growth due to infrequent temperature checks. Potential for overflow spills.",
+                        wasteInfo: "Milk spoilage from inconsistent temperature. Overflow waste during manual transfers."
+                    },
+                    pasteurization: {
+                        title: "Pasteurization Tanks",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "115.3 °F", status: "WARNING", statusType: "warning", indicator: "!" },
+                            { label: "pH", value: "6.8", status: "LOW", statusType: "warning", indicator: "!" }
+                        ],
+                        detailMetrics: [],
+                        hseInfo: "Risk of steam burns/explosions. Incomplete pasteurization risking pathogen survival.",
+                        wasteInfo: "Product rework/rejection if pasteurization is inadequate. Energy waste."
+                    },
+                    culture_incubation: {
+                        title: "Culture Incubation",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "105.0 °F", status: "STABLE", statusType: "safe", indicator: "✓" },
+                            { label: "Humidity", value: "N/A", status: "UNKNOWN", statusType: "info" }
+                        ],
+                        detailMetrics: [],
+                        hseInfo: "Manual monitoring prone to error. Risk of suboptimal culture growth.",
+                        wasteInfo: "Inconsistent product quality if culture is not optimal. Resource waste."
+                    },
+                    curd_cutting: {
+                        title: "Curd Cutting & Stirring",
+                        overviewMetrics: [
+                            { label: "Blade Sharpness", value: "Degraded", status: "INCONSISTENT", statusType: "warning", indicator: "!" },
+                            { label: "Motor Performance", value: "Manual", status: "N/A", statusType: "info" }
+                        ],
+                        detailMetrics: [],
+                        hseInfo: "Risk of injury during manual adjustments. Inconsistent curd quality affects food safety.",
+                        wasteInfo: "Higher product loss due to inconsistent curd. Energy waste from inefficient motors."
+                    },
+                    molding_shaping: {
+                        title: "Molding & Shaping",
+                        overviewMetrics: [
+                            { label: "Pressure", value: "130 psi", status: "VARYING", statusType: "warning", indicator: "!" },
+                            { label: "Form Quality", value: "Sub-par", status: "WARNING", statusType: "warning", indicator: "!" }
+                        ],
+                        detailMetrics: [],
+                        hseInfo: "Risk of machine malfunction due to lack of real-time data. Inconsistent product quality.",
+                        wasteInfo: "Increased product rejects due to poor shape/size. Material waste."
+                    },
+                    brining: {
+                        title: "Brining Tanks",
+                        overviewMetrics: [
+                            { label: "Salt Conc.", value: "11.2 %", status: "LOW", statusType: "warning", indicator: "!" },
+                            { label: "Brine Clarity", value: "Cloudy", status: "WASTE", statusType: "fault", indicator: "X" }
+                        ],
+                        detailMetrics: [],
+                        hseInfo: "Exposure to chemicals during manual brine management. Inconsistent product safety.",
+                        wasteInfo: "Excessive salt usage or inconsistent brining leads to waste. Brine disposal issues."
+                    },
+                    aging_storage: {
+                        title: "Aging & Storage Rooms",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "N/A", status: "UNKNOWN", statusType: "info" },
+                            { label: "Humidity", value: "N/A", status: "UNKNOWN", statusType: "info" }
+                        ],
+                        detailMetrics: [],
+                        hseInfo: "Risk of product spoilage if environmental conditions are not ideal. Potential for mold growth.",
+                        wasteInfo: "High spoilage rates due to unmonitored conditions. Energy inefficiency."
+                    },
+                    packaging: {
+                        title: "Packaging Line",
+                        overviewMetrics: [
+                            { label: "Seal Integrity", value: "Variable", status: "WARNING", statusType: "warning", indicator: "!" },
+                            { label: "Speed", value: "Manual adjust", status: "N/A", statusType: "info" }
+                        ],
+                        detailMetrics: [],
+                        hseInfo: "Risk of product contamination from poor seals. Worker safety concerns with manual adjustments.",
+                        wasteInfo: "High reject rate due to poor sealing/labeling. Packaging material waste."
+                    },
                 },
-                pasteurization: {
-                    title: "Pasteurization Tanks",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "115.3 °F", status: "WARNING", statusType: "warning", indicator: "!" },
-                        { label: "pH", value: "6.8", status: "LOW", statusType: "warning", indicator: "!" }
-                    ],
-                    detailMetrics: [],
-                    hseInfo: "Risk of steam burns/explosions. Incomplete pasteurization risking pathogen survival.",
-                    wasteInfo: "Product rework/rejection if pasteurization is inadequate. Energy waste."
-                },
-                culture_incubation: {
-                    title: "Culture Incubation",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "105.0 °F", status: "STABLE", statusType: "safe", indicator: "✓" },
-                        { label: "Humidity", value: "N/A", status: "UNKNOWN", statusType: "info" }
-                    ],
-                    detailMetrics: [],
-                    hseInfo: "Manual monitoring prone to error. Risk of suboptimal culture growth.",
-                    wasteInfo: "Inconsistent product quality if culture is not optimal. Resource waste."
-                },
-                curd_cutting: {
-                    title: "Curd Cutting & Stirring",
-                    overviewMetrics: [
-                        { label: "Blade Sharpness", value: "Degraded", status: "INCONSISTENT", statusType: "warning", indicator: "!" },
-                        { label: "Motor Performance", value: "Manual", status: "N/A", statusType: "info" }
-                    ],
-                    detailMetrics: [],
-                    hseInfo: "Risk of injury during manual adjustments. Inconsistent curd quality affects food safety.",
-                    wasteInfo: "Higher product loss due to inconsistent curd. Energy waste from inefficient motors."
-                },
-                molding_shaping: {
-                    title: "Molding & Shaping",
-                    overviewMetrics: [
-                        { label: "Pressure", value: "130 psi", status: "VARYING", statusType: "warning", indicator: "!" },
-                        { label: "Form Quality", value: "Sub-par", status: "WARNING", statusType: "warning", indicator: "!" }
-                    ],
-                    detailMetrics: [],
-                    hseInfo: "Risk of machine malfunction due to lack of real-time data. Inconsistent product quality.",
-                    wasteInfo: "Increased product rejects due to poor shape/size. Material waste."
-                },
-                brining: {
-                    title: "Brining Tanks",
-                    overviewMetrics: [
-                        { label: "Salt Conc.", value: "11.2 %", status: "LOW", statusType: "warning", indicator: "!" },
-                        { label: "Brine Clarity", value: "Cloudy", status: "WASTE", statusType: "fault", indicator: "X" }
-                    ],
-                    detailMetrics: [],
-                    hseInfo: "Exposure to chemicals during manual brine management. Inconsistent product safety.",
-                    wasteInfo: "Excessive salt usage or inconsistent brining leads to waste. Brine disposal issues."
-                },
-                aging_storage: {
-                    title: "Aging & Storage Rooms",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "N/A", status: "UNKNOWN", statusType: "info" },
-                        { label: "Humidity", value: "N/A", status: "UNKNOWN", statusType: "info" }
-                    ],
-                    detailMetrics: [],
-                    hseInfo: "Risk of product spoilage if environmental conditions are not ideal. Potential for mold growth.",
-                    wasteInfo: "High spoilage rates due to unmonitored conditions. Energy inefficiency."
-                },
-                packaging: {
-                    title: "Packaging Line",
-                    overviewMetrics: [
-                        { label: "Seal Integrity", value: "Variable", status: "WARNING", statusType: "warning", indicator: "!" },
-                        { label: "Speed", value: "Manual adjust", status: "N/A", statusType: "info" }
-                    ],
-                    detailMetrics: [],
-                    hseInfo: "Risk of product contamination from poor seals. Worker safety concerns with manual adjustments.",
-                    wasteInfo: "High reject rate due to poor sealing/labeling. Packaging material waste."
+                iot: {
+                    milk_reception: {
+                        title: "Milk Reception & Storage",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "38.4 °F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "Fill Level", value: "90%", status: "SAFE", statusType: "safe", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "milkTemp", label: "Milk Temperature (°F)", value: 38.4, max: 40, status: "optimal", history: generateHistoricalData(38.4, 40) },
+                            { id: "fillLevel", label: "Fill Level (%)", value: 90, max: 100, status: "safe", history: generateHistoricalData(90, 100) },
+                            { id: "pumpVibration", label: "Pump Vibration (mm/s)", value: 8, max: 50, status: "safe", history: generateHistoricalData(8, 50) },
+                            { id: "filterClog", label: "Filter Clog Level (%)", value: 15, max: 100, status: "good", history: generateHistoricalData(15, 100) }
+                        ],
+                        hseInfo: "Continuous temperature/pH monitoring prevents bacterial growth. Automated level control minimizes spills and worker exposure. Early detection of contamination.",
+                        wasteInfo: "Minimized milk spoilage through precise climate control. Automated filling prevents overflow waste. Optimized inventory management based on real-time data."
+                    },
+                    pasteurization: {
+                        title: "Pasteurization Tanks",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "108.7 °F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "pH", value: "6.2", status: "SAFE", statusType: "safe", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "pasteurTemp", label: "Pasteurization Temp (°F)", value: 108.7, max: 110, status: "optimal", history: generateHistoricalData(108.7, 110) },
+                            { id: "flowRate", label: "Flow Rate Consistency (%)", value: 98, max: 100, status: "optimal", history: generateHistoricalData(98, 100) },
+                            { id: "pressureDiff", label: "Pressure Differential (psi)", value: 3, max: 10, status: "safe", history: generateHistoricalData(3, 10) },
+                            { id: "heatingEff", label: "Heating Element Efficiency (%)", value: 92, max: 100, status: "good", history: generateHistoricalData(92, 100) }
+                        ],
+                        hseInfo: "Predictive maintenance prevents failures. Precise, automated temperature control ensures pathogen elimination. Optimized energy consumption.",
+                        wasteInfo: "Reduced rework/rejection rates due to consistent process control. Significant energy savings from adaptive heating/cooling."
+                    },
+                    culture_incubation: {
+                        title: "Culture Incubation",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "108.7 °F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "Humidity", value: "85%", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "cultureTemp", label: "Culture Temp (°F)", value: 108.7, max: 110, status: "optimal", history: generateHistoricalData(108.7, 110) },
+                            { id: "co2", label: "Air Quality (CO2 ppm)", value: 450, max: 1000, status: "safe", history: generateHistoricalData(450, 1000) },
+                            { id: "fermentActivity", label: "Fermentation Activity (%)", value: 90, max: 100, status: "good", history: generateHistoricalData(90, 100) },
+                            { id: "nutrientLevel", label: "Nutrient Level (%)", value: 75, max: 100, status: "good", history: generateHistoricalData(75, 100) }
+                        ],
+                        hseInfo: "Automated environmental control ensures optimal culture growth, reducing contamination risk. Real-time alerts for deviations.",
+                        wasteInfo: "Consistent culture quality minimizes product loss. Optimized resource usage for incubation."
+                    },
+                    curd_cutting: {
+                        title: "Curd Cutting & Stirring",
+                        overviewMetrics: [
+                            { label: "Strand Uniformity", value: "Optimal", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "Cutting Speed", value: "Auto", status: "SAFE", statusType: "safe", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "bladeWear", label: "Blade Wear (%)", value: 10, max: 100, status: "good", history: generateHistoricalData(10, 100) },
+                            { id: "motorTorque", label: "Motor Torque (Nm)", value: 15, max: 20, status: "safe", history: generateHistoricalData(15, 20) },
+                            { id: "lubricantLevel", label: "Lubricant Level (%)", value: 85, max: 100, status: "optimal", history: generateHistoricalData(85, 100) },
+                            { id: "vibrationAnomaly", label: "Vibration Anomaly Score", value: 5, max: 100, status: "safe", history: generateHistoricalData(5, 100) }
+                        ],
+                        hseInfo: "Predictive maintenance for blades prevents failures and ensures consistent curd quality. Automated speed control reduces human error.",
+                        wasteInfo: "Optimized cutting reduces product loss. Efficient motor operation saves energy."
+                    },
+                    molding_shaping: {
+                        title: "Molding & Shaping",
+                        overviewMetrics: [
+                            { label: "Pressure", value: "140 psi", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "Mold Integrity", value: "Optimal", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "productUniformity", label: "Product Uniformity (%)", value: 97, max: 100, status: "optimal", history: generateHistoricalData(97, 100) },
+                            { id: "cycleTime", label: "Cycle Time (s)", value: 4.5, max: 6, status: "optimal", history: generateHistoricalData(4.5, 6) },
+                            { id: "heatingTemp", label: "Heating Plate Temp. (°F)", value: 160, max: 170, status: "good", history: generateHistoricalData(160, 170) },
+                            { id: "dieClogRisk", label: "Die Clog Risk (%)", value: 8, max: 100, status: "safe", history: generateHistoricalData(8, 100) }
+                        ],
+                        hseInfo: "Automated adjustments ensure consistent product quality, reducing food safety risks. Predictive maintenance prevents machine breakdowns.",
+                        wasteInfo: "Reduced product rejects due to precise molding. Optimized cycle times save energy and materials."
+                    },
+                    brining: {
+                        title: "Brining Tanks",
+                        overviewMetrics: [
+                            { label: "Salt Conc.", value: "14.5 %", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "Temperature", value: "52°F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "brineDensity", label: "Brine Density (g/cm³)", value: 1.08, max: 1.1, status: "optimal", history: generateHistoricalData(1.08, 1.1) },
+                            { id: "purityIndex", label: "Purity Index (%)", value: 99, max: 100, status: "optimal", history: generateHistoricalData(99, 100) },
+                            { id: "filterBlockage", label: "Filter Blockage (%)", value: 5, max: 100, status: "safe", history: generateHistoricalData(5, 100) },
+                            { id: "fluidLevelHealth", label: "Fluid Level Sensor Health", value: 98, max: 100, status: "safe", history: generateHistoricalData(98, 100) }
+                        ],
+                        hseInfo: "Automated salt dosing and temperature control ensure product safety. Real-time monitoring prevents contamination.",
+                        wasteInfo: "Precise salt usage minimizes waste. Optimized brining reduces product loss and disposal costs."
+                    },
+                    aging_storage: {
+                        title: "Aging & Storage Rooms",
+                        overviewMetrics: [
+                            { label: "Temperature", value: "48°F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "Humidity", value: "88%", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "airflowConsistency", label: "Airflow Consistency (%)", value: 95, max: 100, status: "optimal", history: generateHistoricalData(95, 100) },
+                            { id: "moldRisk", label: "Mold Growth Risk (%)", value: 2, max: 100, status: "safe", history: generateHistoricalData(2, 100) },
+                            { id: "oxygenLevel", label: "Oxygen Level (ppm)", value: 20.9, max: 21, status: "optimal", history: generateHistoricalData(20.9, 21) },
+                            { id: "lightExposure", label: "Light Exposure (Lux)", value: 10, max: 20, status: "safe", history: generateHistoricalData(10, 20) }
+                        ],
+                        hseInfo: "Precise environmental control prevents spoilage and ensures product safety. Early detection of anomalies.",
+                        wasteInfo: "Reduced spoilage rates. Optimized energy consumption for climate control."
+                    },
+                    packaging: {
+                        title: "Packaging Line",
+                        overviewMetrics: [
+                            { label: "Seal Integrity", value: "99.8%", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
+                            { label: "Speed", value: "Auto (120 units/min)", status: "SAFE", statusType: "safe", indicator: "✓" }
+                        ],
+                        detailMetrics: [
+                            { id: "filmTension", label: "Film Tension (N)", value: 25, max: 30, status: "optimal", history: generateHistoricalData(25, 30) },
+                            { id: "weightAccuracy", label: "Weight Accuracy (%)", value: 99.5, max: 100, status: "optimal", history: generateHistoricalData(99.5, 100) },
+                            { id: "labelAlignment", label: "Label Alignment (%)", value: 99, max: 100, status: "optimal", history: generateHistoricalData(99, 100) },
+                            { id: "rejectRate", label: "Reject Rate (%)", value: 0.1, max: 5, status: "safe", history: generateHistoricalData(0.1, 5) }
+                        ],
+                        hseInfo: "Automated defect detection prevents faulty products from reaching consumers. Reduced worker interaction with moving parts.",
+                        wasteInfo: "Minimized packaging material waste and product loss due to high accuracy. Optimized speed saves energy."
+                    },
                 },
             },
-            iot: {
-                milk_reception: {
-                    title: "Milk Reception & Storage",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "38.4 °F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "Fill Level", value: "90%", status: "SAFE", statusType: "safe", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "milkTemp", label: "Milk Temperature (°F)", value: 38.4, max: 40, status: "optimal", history: generateHistoricalData(38.4, 40) },
-                        { id: "fillLevel", label: "Fill Level (%)", value: 90, max: 100, status: "safe", history: generateHistoricalData(90, 100) },
-                        { id: "pumpVibration", label: "Pump Vibration (mm/s)", value: 8, max: 50, status: "safe", history: generateHistoricalData(8, 50) },
-                        { id: "filterClog", label: "Filter Clog Level (%)", value: 15, max: 100, status: "good", history: generateHistoricalData(15, 100) }
-                    ],
-                    hseInfo: "Continuous temperature/pH monitoring prevents bacterial growth. Automated level control minimizes spills and worker exposure. Early detection of contamination.",
-                    wasteInfo: "Minimized milk spoilage through precise climate control. Automated filling prevents overflow waste. Optimized inventory management based on real-time data."
+            kpis: {
+                safety: {
+                    title: "Safety KPIs",
+                    kpis: [
+                        { title: "Incident Rate (TRIR)", value: "0.5", target: "< 1.0", statusClass: "good", description: "The Total Recordable Incident Rate (TRIR) measures the number of work-related injuries and illnesses per 100 full-time employees. A lower rate indicates a safer workplace and effective safety programs. Our goal is to minimize all recordable incidents." },
+                        { title: "Lost Time Injury Rate", value: "0.1", target: "< 0.2", statusClass: "good", description: "The Lost Time Injury Frequency Rate (LTIFR) tracks injuries that result in an employee being unable to perform their normal duties for at least one full shift. A low LTIFR indicates a strong safety culture and effective injury prevention measures, minimizing disruption to operations." },
+                        { title: "Near Misses Reported", value: "12", target: "> 10 (proactive)", statusClass: "moderate", description: "Tracking near misses is a proactive safety indicator. A higher number of reported near misses suggests a strong safety culture where employees feel comfortable identifying and reporting potential hazards before they lead to actual incidents. This allows for timely corrective actions." },
+                        { title: "Safety Training Completion", value: "98%", target: "100%", statusClass: "good", description: "This KPI measures the percentage of employees who have completed all required safety training modules. High completion rates ensure that our workforce is well-informed about safety protocols, emergency procedures, and safe operating practices for all equipment, minimizing risks." },
+                        { title: "Safety Audit Score", value: "92%", target: "> 90%", statusClass: "good", description: "The Safety Audit Score reflects our compliance with internal safety standards and external regulations. Regular audits help identify areas for improvement in safety management systems, ensuring a continuously improving safety environment and adherence to best practices." }
+                    ]
                 },
-                pasteurization: {
-                    title: "Pasteurization Tanks",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "108.7 °F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "pH", value: "6.2", status: "SAFE", statusType: "safe", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "pasteurTemp", label: "Pasteurization Temp (°F)", value: 108.7, max: 110, status: "optimal", history: generateHistoricalData(108.7, 110) },
-                        { id: "flowRate", label: "Flow Rate Consistency (%)", value: 98, max: 100, status: "optimal", history: generateHistoricalData(98, 100) },
-                        { id: "pressureDiff", label: "Pressure Differential (psi)", value: 3, max: 10, status: "safe", history: generateHistoricalData(3, 10) },
-                        { id: "heatingEff", label: "Heating Element Efficiency (%)", value: 92, max: 100, status: "good", history: generateHistoricalData(92, 100) }
-                    ],
-                    hseInfo: "Predictive maintenance prevents failures. Precise, automated temperature control ensures pathogen elimination. Optimized energy consumption.",
-                    wasteInfo: "Reduced rework/rejection rates due to consistent process control. Significant energy savings from adaptive heating/cooling."
+                quality: {
+                    title: "Quality KPIs",
+                    kpis: [
+                        { title: "Yield Percentage", value: "11.5%", target: "> 11%", statusClass: "good", description: "Yield percentage measures the efficiency of converting raw milk into finished mozzarella. A higher yield indicates optimized production processes, reduced waste, and better resource utilization, directly impacting profitability." },
+                        { title: "Moisture Content", value: "48.2%", target: "47-49%", statusClass: "good", description: "Moisture content is a critical parameter for mozzarella, influencing its texture, melt characteristics, and shelf life. Maintaining the target range ensures consistent product quality and adherence to regulatory standards for different mozzarella types." },
+                        { title: "Fat-in-Dry-Matter (FDM)", value: "45.0%", target: "44-46%", statusClass: "good", description: "Fat-in-Dry-Matter (FDM) is essential for mozzarella's flavor, creaminess, and melting properties. Consistent FDM ensures the cheese performs as expected in culinary applications, particularly for pizza, and meets product specifications." },
+                        { title: "Final pH", value: "5.25", target: "5.2-5.4", statusClass: "good", description: "Maintaining the correct pH throughout the mozzarella production process, especially the final pH, is crucial for proper curd formation, stretching characteristics (pasta filata), and inhibiting undesirable microbial growth. It directly impacts the cheese's texture and stability." },
+                        { title: "Microbiological Compliance", value: "99.9%", target: "100%", statusClass: "good", description: "This KPI tracks the percentage of product batches that meet all microbiological safety standards, indicating the absence of harmful pathogens (e.g., Listeria, E. coli) and spoilage organisms. High compliance is paramount for food safety, consumer health, and regulatory adherence." },
+                        { title: "Customer Complaint Rate", value: "0.01%", target: "< 0.05%", statusClass: "good", description: "The customer complaint rate measures the percentage of products that lead to customer feedback regarding quality issues. A low rate signifies high customer satisfaction and effective quality control processes, reducing potential product recalls and reputational damage." },
+                        { title: "Rework/Defect Rate", value: "0.5%", target: "< 1%", statusClass: "good", description: "This KPI tracks the percentage of mozzarella that does not meet quality specifications and requires reprocessing (rework) or is rejected entirely. A low rework/defect rate indicates efficient production, minimal waste, and robust process control, directly impacting cost-effectiveness." },
+                        { title: "Sensory Score", value: "4.5/5", target: "> 4.0", statusClass: "good", description: "The Sensory Score is based on evaluations by trained panels or objective instruments, assessing attributes like flavor, aroma, texture (stretch, firmness), and appearance. A high score ensures the mozzarella consistently meets desired consumer characteristics and brand standards." }
+                    ]
                 },
-                culture_incubation: {
-                    title: "Culture Incubation",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "108.7 °F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "Humidity", value: "85%", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "cultureTemp", label: "Culture Temp (°F)", value: 108.7, max: 110, status: "optimal", history: generateHistoricalData(108.7, 110) },
-                        { id: "co2", label: "Air Quality (CO2 ppm)", value: 450, max: 1000, status: "safe", history: generateHistoricalData(450, 1000) },
-                        { id: "fermentActivity", label: "Fermentation Activity (%)", value: 90, max: 100, status: "good", history: generateHistoricalData(90, 100) },
-                        { id: "nutrientLevel", label: "Nutrient Level (%)", value: 75, max: 100, status: "good", history: generateHistoricalData(75, 100) }
-                    ],
-                    hseInfo: "Automated environmental control ensures optimal culture growth, reducing contamination risk. Real-time alerts for deviations.",
-                    wasteInfo: "Consistent culture quality minimizes product loss. Optimized resource usage for incubation."
+                environmental: {
+                    title: "Environmental KPIs",
+                    kpis: [
+                        { title: "Water Usage Intensity", value: "2.8 L/kg", target: "< 3.0 L/kg", statusClass: "good", description: "Water Usage Intensity measures the liters of water consumed per kilogram of mozzarella produced. This KPI drives water conservation efforts, identifies areas for efficiency improvements in cleaning (CIP) and processing, and reduces environmental impact." },
+                        { title: "Energy Consumption Intensity", value: "0.8 kWh/kg", target: "< 1.0 kWh/kg", statusClass: "good", description: "Energy Consumption Intensity tracks the kilowatt-hours (kWh) of energy used per kilogram of mozzarella produced. Optimizing this KPI reduces operational costs, lowers the carbon footprint, and promotes the use of more energy-efficient equipment throughout the production process." },
+                        { title: "Wastewater BOD Load", value: "50 mg/L", target: "< 60 mg/L", statusClass: "good", description: "The Biochemical Oxygen Demand (BOD) load in wastewater indicates the amount of oxygen required by microorganisms to decompose organic matter. A lower BOD load signifies effective wastewater treatment, reduced environmental impact, and compliance with discharge regulations." },
+                        { title: "Solid Waste Diverted", value: "85%", target: "> 80%", statusClass: "good", description: "Solid Waste Diverted measures the percentage of non-recycled solid waste that is successfully diverted from landfills through recycling, composting, or other beneficial uses. A higher diversion rate supports sustainability goals and reduces environmental footprint." },
+                        { title: "Whey Valorization Rate", value: "95%", target: "> 90%", statusClass: "good", description: "The Whey Valorization Rate represents the percentage of whey byproduct that is converted into value-added products (e.g., proteins, lactose, ethanol, biogas) rather than being treated as waste. A high rate signifies a circular economy approach, reducing waste and creating new revenue streams." },
+                        { title: "GHG Emissions Intensity", value: "0.35 kg CO2e/kg", target: "< 0.30 kg CO2e/kg", statusClass: "moderate", description: "Greenhouse Gas (GHG) Emissions Intensity measures the total CO2 equivalent emissions per kilogram of mozzarella produced. Reducing this KPI is vital for climate action, aligning with global sustainability goals, and improving the environmental footprint of our operations." }
+                    ]
+                }
+            },
+            comparativeEnvData: { // This data is specifically for the comparative environmental section in the equipment tab
+                traditional: {
+                    waterReused: { value: 5, unit: "%", statusType: "fault", color: "#e53e3e" },
+                    energySaved: { value: 5, unit: "%", statusType: "warning", color: "#f6ad55" },
+                    wasteVolume: { value: 18, unit: "% of production", statusType: "fault", color: "#e53e3e" }
                 },
-                curd_cutting: {
-                    title: "Curd Cutting & Stirring",
-                    overviewMetrics: [
-                        { label: "Strand Uniformity", value: "Optimal", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "Cutting Speed", value: "Auto", status: "SAFE", statusType: "safe", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "bladeWear", label: "Blade Wear (%)", value: 10, max: 100, status: "good", history: generateHistoricalData(10, 100) },
-                        { id: "motorTorque", label: "Motor Torque (Nm)", value: 15, max: 20, status: "safe", history: generateHistoricalData(15, 20) },
-                        { id: "lubricantLevel", label: "Lubricant Level (%)", value: 85, max: 100, status: "optimal", history: generateHistoricalData(85, 100) },
-                        { id: "vibrationAnomaly", label: "Vibration Anomaly Score", value: 5, max: 100, status: "safe", history: generateHistoricalData(5, 100) }
-                    ],
-                    hseInfo: "Predictive maintenance for blades prevents failures and ensures consistent curd quality. Automated speed control reduces human error.",
-                    wasteInfo: "Optimized cutting reduces product loss. Efficient motor operation saves energy."
-                },
-                molding_shaping: {
-                    title: "Molding & Shaping",
-                    overviewMetrics: [
-                        { label: "Pressure", value: "140 psi", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "Mold Integrity", value: "Optimal", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "productUniformity", label: "Product Uniformity (%)", value: 97, max: 100, status: "optimal", history: generateHistoricalData(97, 100) },
-                        { id: "cycleTime", label: "Cycle Time (s)", value: 4.5, max: 6, status: "optimal", history: generateHistoricalData(4.5, 6) },
-                        { id: "heatingTemp", label: "Heating Plate Temp. (°F)", value: 160, max: 170, status: "good", history: generateHistoricalData(160, 170) },
-                        { id: "dieClogRisk", label: "Die Clog Risk (%)", value: 8, max: 100, status: "safe", history: generateHistoricalData(8, 100) }
-                    ],
-                    hseInfo: "Automated adjustments ensure consistent product quality, reducing food safety risks. Predictive maintenance prevents machine breakdowns.",
-                    wasteInfo: "Reduced product rejects due to precise molding. Optimized cycle times save energy and materials."
-                },
-                brining: {
-                    title: "Brining Tanks",
-                    overviewMetrics: [
-                        { label: "Salt Conc.", value: "14.5 %", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "Temperature", value: "52°F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "brineDensity", label: "Brine Density (g/cm³)", value: 1.08, max: 1.1, status: "optimal", history: generateHistoricalData(1.08, 1.1) },
-                        { id: "purityIndex", label: "Purity Index (%)", value: 99, max: 100, status: "optimal", history: generateHistoricalData(99, 100) },
-                        { id: "filterBlockage", label: "Filter Blockage (%)", value: 5, max: 100, status: "safe", history: generateHistoricalData(5, 100) },
-                        { id: "fluidLevelHealth", label: "Fluid Level Sensor Health", value: 98, max: 100, status: "safe", history: generateHistoricalData(98, 100) }
-                    ],
-                    hseInfo: "Automated salt dosing and temperature control ensure product safety. Real-time monitoring prevents contamination.",
-                    wasteInfo: "Precise salt usage minimizes waste. Optimized brining reduces product loss and disposal costs."
-                },
-                aging_storage: {
-                    title: "Aging & Storage Rooms",
-                    overviewMetrics: [
-                        { label: "Temperature", value: "48°F", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "Humidity", value: "88%", status: "OPTIMAL", statusType: "optimal", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "airflowConsistency", label: "Airflow Consistency (%)", value: 95, max: 100, status: "optimal", history: generateHistoricalData(95, 100) },
-                        { id: "moldRisk", label: "Mold Growth Risk (%)", value: 2, max: 100, status: "safe", history: generateHistoricalData(2, 100) },
-                        { id: "oxygenLevel", label: "Oxygen Level (ppm)", value: 20.9, max: 21, status: "optimal", history: generateHistoricalData(20.9, 21) },
-                        { id: "lightExposure", label: "Light Exposure (Lux)", value: 10, max: 20, status: "safe", history: generateHistoricalData(10, 20) }
-                    ],
-                    hseInfo: "Precise environmental control prevents spoilage and ensures product safety. Early detection of anomalies.",
-                    wasteInfo: "Reduced spoilage rates. Optimized energy consumption for climate control."
-                },
-                packaging: {
-                    title: "Packaging Line",
-                    overviewMetrics: [
-                        { label: "Seal Integrity", value: "99.8%", status: "OPTIMAL", statusType: "optimal", indicator: "✓" },
-                        { label: "Speed", value: "Auto (120 units/min)", status: "SAFE", statusType: "safe", indicator: "✓" }
-                    ],
-                    detailMetrics: [
-                        { id: "filmTension", label: "Film Tension (N)", value: 25, max: 30, status: "optimal", history: generateHistoricalData(25, 30) },
-                        { id: "weightAccuracy", label: "Weight Accuracy (%)", value: 99.5, max: 100, status: "optimal", history: generateHistoricalData(99.5, 100) },
-                        { id: "labelAlignment", label: "Label Alignment (%)", value: 99, max: 100, status: "optimal", history: generateHistoricalData(99, 100) },
-                        { id: "rejectRate", label: "Reject Rate (%)", value: 0.1, max: 5, status: "safe", history: generateHistoricalData(0.1, 5) }
-                    ],
-                    hseInfo: "Automated defect detection prevents faulty products from reaching consumers. Reduced worker interaction with moving parts.",
-                    wasteInfo: "Minimized packaging material waste and product loss due to high accuracy. Optimized speed saves energy."
-                },
+                iot: {
+                    waterReused: { value: 68, unit: "%", statusType: "safe", color: "#38a169" },
+                    energySaved: { value: 12, unit: "%", statusType: "safe", color: "#38a169" },
+                    wasteVolume: { value: 2, unit: "% of production", statusType: "safe", color: "#38a169" }
+                }
             }
         };
 
-        // Data for the comparative chart (Environmental & Waste)
-        const comparativeEnvData = {
-            traditional: {
-                waterReused: { value: 5, unit: "%", statusType: "fault", color: "#e53e3e" }, /* Updated to 5% */
-                energySaved: { value: 5, unit: "%", statusType: "warning", color: "#f6ad55" },
-                wasteVolume: { value: 18, unit: "% of production", statusType: "fault", color: "#e53e3e" } /* Updated to 18% */
-            },
-            iot: {
-                waterReused: { value: 68, unit: "%", statusType: "safe", color: "#38a169" },
-                energySaved: { value: 12, unit: "%", statusType: "safe", color: "#38a169" },
-                wasteVolume: { value: 2, unit: "% of production", statusType: "safe", color: "#38a169" } /* Assuming IoT reduces waste % significantly */
-            }
-        };
-
+        let currentEquipmentScenario = 'iot'; // Default to IoT-Enabled for initial equipment view
+        let currentTab = 'equipment'; // Default to Equipment Monitoring tab
 
         const equipmentGrid = document.getElementById('equipment-monitoring-grid');
         const envStatsGrid = document.getElementById('env-waste-stats-grid');
+        const equipmentTabContent = document.getElementById('equipment-tab-content');
+        const kpiTabContent = document.getElementById('kpi-tab-content');
+
+        const tabEquipmentBtn = document.getElementById('tab-equipment');
+        const tabKpisBtn = document.getElementById('tab-kpis');
+
+        // Original IoT/Traditional toggle buttons (within equipment tab)
         const toggleTraditionalBtn = document.getElementById('toggle-traditional');
         const toggleIoTBtn = document.getElementById('toggle-iot');
 
-        // Modal Elements
+
+        // Equipment Detail Modal Elements
         const equipmentDetailModal = document.getElementById('equipment-detail-modal');
         const modalCloseButton = document.getElementById('modal-close-button');
         const modalEquipmentTitle = document.getElementById('modal-equipment-title');
@@ -704,19 +1153,23 @@
         const modalWasteText = document.getElementById('modal-waste-text');
         const chartContainer = document.getElementById('chart-container');
 
+        // KPI Detail Modal Elements
+        const kpiModal = document.getElementById('kpiModal');
+        const closeKpiModalBtn = document.getElementById('closeKpiModalBtn');
+        const modalKpiTitle = document.getElementById('modalKpiTitle');
+        const modalKpiValue = document.getElementById('modalKpiValue');
+        const modalKpiTarget = document.getElementById('modalKpiTarget');
+        const modalKpiDescription = document.getElementById('modalKpiDescription');
 
-        let currentScenario = 'iot'; // Default to IoT-Enabled for initial view
 
-        // Function to render the dashboard
-        function renderDashboard() {
-            const scenarioData = dashboardData[currentScenario];
+        // Function to render the Equipment Monitoring tab content
+        function renderEquipmentDashboard() {
+            console.log('Rendering Equipment Dashboard for scenario:', currentEquipmentScenario);
+            const scenarioData = appData.equipment[currentEquipmentScenario];
             equipmentGrid.innerHTML = ''; // Clear previous cards
 
             // Render Equipment Monitoring cards
             for (const key in scenarioData) {
-                // Ensure we only render equipment cards here, not env_stats
-                if (key === 'env_stats') continue;
-
                 const module = scenarioData[key];
 
                 let overviewMetricsHtml = '';
@@ -733,7 +1186,8 @@
                 });
 
                 let detailMetricsHtml = '';
-                if (currentScenario === 'iot' && module.detailMetrics && module.detailMetrics.length > 0) {
+                if (currentEquipmentScenario === 'iot' && module.detailMetrics && module.detailMetrics.length > 0) {
+                    modalDetailMetrics.innerHTML = ''; // Clear existing metrics for fresh render in modal
                     module.detailMetrics.forEach(detail => {
                         const barValue = (detail.value / detail.max) * 100;
                         detailMetricsHtml += `
@@ -761,17 +1215,16 @@
                 equipmentGrid.innerHTML += cardHtml;
             }
 
-            // Add click listeners to cards
-            document.querySelectorAll('.module-card').forEach(card => {
+            // Add click listeners to equipment cards
+            document.querySelectorAll('#equipment-monitoring-grid .module-card').forEach(card => {
                 card.addEventListener('click', (event) => {
                     const equipmentKey = event.currentTarget.dataset.equipmentKey;
                     openEquipmentDetailModal(equipmentKey);
                 });
             });
 
-
-            // Update Environmental & Waste Statistics (using comparativeEnvData now)
-            const currentEnvStats = comparativeEnvData[currentScenario];
+            // Update Environmental & Waste Statistics
+            const currentEnvStats = appData.comparativeEnvData[currentEquipmentScenario];
 
             document.getElementById('water-reused-value').textContent = `${currentEnvStats.waterReused.value}${currentEnvStats.waterReused.unit}`;
             document.getElementById('water-reused-bar').style.width = `${currentEnvStats.waterReused.value}%`;
@@ -782,57 +1235,133 @@
             document.getElementById('energy-saved-bar').style.backgroundColor = currentEnvStats.energySaved.color;
 
             document.getElementById('waste-volume-value').textContent = `${currentEnvStats.wasteVolume.value}${currentEnvStats.wasteVolume.unit}`;
-            // For waste volume, the bar represents the *reduction* or *efficiency*.
-            // Let's assume the value is the percentage of production that IS waste.
-            // So, a higher value means more waste, and the bar should reflect how 'bad' it is, or how 'good' the efficiency is.
-            // If the value is 18% waste, then 82% is efficient. If 2% waste, 98% efficient.
             const wasteEfficiency = 100 - currentEnvStats.wasteVolume.value;
             document.getElementById('waste-volume-bar').style.width = `${wasteEfficiency}%`;
-            // Color the waste bar based on its status type (e.g., red for fault, green for safe)
             document.getElementById('waste-volume-bar').style.backgroundColor = currentEnvStats.wasteVolume.color;
 
+            // Overall Plant Health is static for now (or could be dynamic based on scenario)
+            document.getElementById('plant-health-score').textContent = currentEquipmentScenario === 'iot' ? '92%' : '65%';
+            document.getElementById('plant-health-status').innerHTML = currentEquipmentScenario === 'iot' ?
+                createStatusPill('EXCELLENT', 'safe', '✓').replace(/<span.*?>|<\/span>/g, '') :
+                createStatusPill('MODERATE', 'warning', '!').replace(/<span.*?>|<\/span>/g, '');
 
-            const suggestionBox = document.getElementById('suggestion-box');
-            const suggestionText = document.getElementById('suggestion-text');
-            // The suggestion box is now tied to the IoT scenario's specific suggestion
-            const iotEnvStats = dashboardData.iot.env_stats; // Use IoT's suggestion data
-            if (iotEnvStats.suggestion && !iotEnvStats.suggestion.hidden) {
-                suggestionBox.classList.remove('hidden');
-                suggestionText.textContent = iotEnvStats.suggestion.text;
-            } else {
-                suggestionBox.classList.add('hidden');
-            }
-
-            // Overall Plant Health is static for now, as it's not in comparativeEnvData
-            document.getElementById('plant-health-score').textContent = '92%';
-            document.getElementById('plant-health-status').className = `status-pill status-safe`;
-            document.getElementById('plant-health-status').innerHTML = createStatusPill('EXCELLENT', 'safe', '✓').replace(/<span.*?>|<\/span>/g, '');
-
-
-            // Update toggle button active states
+            // Update scenario toggle button active states
             toggleTraditionalBtn.classList.remove('active');
             toggleIoTBtn.classList.remove('active');
-            if (currentScenario === 'traditional') {
+            if (currentEquipmentScenario === 'traditional') {
                 toggleTraditionalBtn.classList.add('active');
+                document.getElementById('suggestion-box').classList.remove('hidden');
+                document.getElementById('suggestion-text').textContent = "Consider upgrading to IoT-enabled sensors for real-time insights and improved efficiency.";
             } else {
                 toggleIoTBtn.classList.add('active');
+                document.getElementById('suggestion-box').classList.add('hidden');
             }
+        }
 
-            // Render the comparative chart if it's still desired (removed from this version to focus on equipment)
-            // If you want to re-add it, uncomment the call here and ensure its data is set up correctly.
-            // renderComparativeChart();
+        // Function to render the KPI Dashboard tab content
+        function renderKpiDashboard() {
+            console.log('Rendering KPI Dashboard.');
+            // Safety KPIs
+            const safetyKpisSection = document.querySelector('#kpi-tab-content .kpi-section:nth-of-type(1) .kpi-grid');
+            safetyKpisSection.innerHTML = ''; // Clear previous
+            appData.kpis.safety.kpis.forEach(kpi => {
+                safetyKpisSection.innerHTML += `
+                    <div class="kpi-card"
+                         data-kpi-title="${kpi.title}"
+                         data-kpi-value="${kpi.value}"
+                         data-kpi-target="${kpi.target}"
+                         data-kpi-status-class="${kpi.statusClass}"
+                         data-kpi-description="${kpi.description}">
+                        <h3>${kpi.title}</h3>
+                        <div class="value ${kpi.statusClass} text-4xl font-bold mb-1">${kpi.value}</div>
+                        <div class="target text-sm text-gray-400">${kpi.target}</div>
+                    </div>
+                `;
+            });
+
+            // Quality KPIs
+            const qualityKpisSection = document.querySelector('#kpi-tab-content .kpi-section:nth-of-type(2) .kpi-grid');
+            qualityKpisSection.innerHTML = ''; // Clear previous
+            appData.kpis.quality.kpis.forEach(kpi => {
+                qualityKpisSection.innerHTML += `
+                    <div class="kpi-card"
+                         data-kpi-title="${kpi.title}"
+                         data-kpi-value="${kpi.value}"
+                         data-kpi-target="${kpi.target}"
+                         data-kpi-status-class="${kpi.statusClass}"
+                         data-kpi-description="${kpi.description}">
+                        <h3>${kpi.title}</h3>
+                        <div class="value ${kpi.statusClass} text-4xl font-bold mb-1">${kpi.value}</div>
+                        <div class="target text-sm text-gray-400">${kpi.target}</div>
+                    </div>
+                `;
+            });
+
+            // Environmental KPIs
+            const environmentalKpisSection = document.querySelector('#kpi-tab-content .kpi-section:nth-of-type(3) .kpi-grid');
+            environmentalKpisSection.innerHTML = ''; // Clear previous
+            appData.kpis.environmental.kpis.forEach(kpi => {
+                environmentalKpisSection.innerHTML += `
+                    <div class="kpi-card"
+                         data-kpi-title="${kpi.title}"
+                         data-kpi-value="${kpi.value}"
+                         data-kpi-target="${kpi.target}"
+                         data-kpi-status-class="${kpi.statusClass}"
+                         data-kpi-description="${kpi.description}">
+                        <h3>${kpi.title}</h3>
+                        <div class="value ${kpi.statusClass} text-4xl font-bold mb-1">${kpi.value}</div>
+                        <div class="target text-sm text-gray-400">${kpi.target}</div>
+                    </div>
+                `;
+            });
+
+            // Add click listeners to KPI cards
+            document.querySelectorAll('#kpi-tab-content .kpi-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const title = card.dataset.kpiTitle;
+                    const value = card.dataset.kpiValue;
+                    const target = card.dataset.kpiTarget;
+                    const statusClass = card.dataset.kpiStatusClass;
+                    const description = card.dataset.kpiDescription;
+                    showKpiModal(title, value, target, statusClass, description);
+                });
+            });
+        }
+
+        // Function to switch between tabs
+        function switchTab(tabName) {
+            console.log('Switching to tab:', tabName);
+            currentTab = tabName;
+
+            // Update main tab button active states
+            tabEquipmentBtn.classList.remove('active');
+            tabKpisBtn.classList.remove('active');
+
+            equipmentTabContent.classList.add('hidden');
+            kpiTabContent.classList.add('hidden');
+
+            if (tabName === 'equipment') {
+                tabEquipmentBtn.classList.add('active');
+                equipmentTabContent.classList.remove('hidden');
+                renderEquipmentDashboard(); // Re-render equipment dashboard when active
+            } else if (tabName === 'kpis') {
+                tabKpisBtn.classList.add('active');
+                kpiTabContent.classList.remove('hidden');
+                renderKpiDashboard(); // Re-render KPI dashboard when active
+            }
         }
 
         // Function to open the equipment detail modal
         function openEquipmentDetailModal(equipmentKey) {
-            const moduleData = dashboardData[currentScenario][equipmentKey];
+            console.log('Opening equipment detail modal for:', equipmentKey);
+            const moduleData = appData.equipment[currentEquipmentScenario][equipmentKey];
 
             modalEquipmentTitle.textContent = moduleData.title;
             modalOverviewSummary.textContent = `Current status: ${moduleData.overviewMetrics.map(m => `${m.label}: ${m.value} (${m.status})`).join(', ')}.`;
 
             // Populate current sensor readings
             modalDetailMetrics.innerHTML = '<h3 class="modal-section-title">Current Sensor Readings</h3>';
-            if (currentScenario === 'iot' && moduleData.detailMetrics && moduleData.detailMetrics.length > 0) {
+            if (currentEquipmentScenario === 'iot' && moduleData.detailMetrics && moduleData.detailMetrics.length > 0) {
                 moduleData.detailMetrics.forEach(detail => {
                     const barValue = (detail.value / detail.max) * 100;
                     modalDetailMetrics.innerHTML += `
@@ -864,7 +1393,7 @@
 
             // Render charts if in IoT mode and data is available after a short delay to show spinner
             setTimeout(() => {
-                if (currentScenario === 'iot' && moduleData.detailMetrics) {
+                if (currentEquipmentScenario === 'iot' && moduleData.detailMetrics && moduleData.detailMetrics.length > 0) {
                     renderChartsInModal(moduleData.detailMetrics);
                 } else {
                     chartContainer.innerHTML = `<p class="text-gray-400 text-center mt-8">Trend charts are available in IoT-Enabled mode.</p>`;
@@ -877,11 +1406,31 @@
 
         // Function to close the equipment detail modal
         function closeEquipmentDetailModal() {
+            console.log('Closing equipment detail modal.');
             equipmentDetailModal.classList.remove('active');
         }
 
+        // Function to show the KPI detail modal
+        const showKpiModal = (title, value, target, statusClass, description) => {
+            console.log('Showing KPI modal for:', title);
+            modalKpiTitle.textContent = title;
+            modalKpiValue.textContent = value;
+            modalKpiValue.className = 'modal-value'; // Reset classes
+            modalKpiValue.classList.add(statusClass);
+            modalKpiTarget.textContent = target;
+            modalKpiDescription.textContent = description;
+            kpiModal.classList.add('show');
+        };
+
+        // Function to hide the KPI detail modal
+        const hideKpiModal = () => {
+            console.log('Hiding KPI modal.');
+            kpiModal.classList.remove('show');
+        };
+
         // D3.js Chart Rendering Function for Modal
         function renderChartsInModal(detailMetrics) {
+            console.log('Rendering charts in modal.');
             chartContainer.innerHTML = ''; // Clear previous charts after loading
 
             const margin = { top: 20, right: 20, bottom: 30, left: 40 };
@@ -988,29 +1537,47 @@
         }
 
 
-        // Event Listeners for Scenario Toggle Buttons
-        toggleTraditionalBtn.addEventListener('click', () => {
-            currentScenario = 'traditional';
-            renderDashboard();
+        document.addEventListener('DOMContentLoaded', () => {
+            // Event Listeners for Tab Buttons
+            tabEquipmentBtn.addEventListener('click', () => switchTab('equipment'));
+            tabKpisBtn.addEventListener('click', () => switchTab('kpis'));
+
+            // Event Listeners for Scenario Toggle Buttons (within equipment tab)
+            toggleTraditionalBtn.addEventListener('click', () => {
+                console.log('Traditional button clicked!');
+                currentEquipmentScenario = 'traditional';
+                renderEquipmentDashboard();
+                console.log('Current scenario after Traditional click:', currentEquipmentScenario);
+            });
+            toggleIoTBtn.addEventListener('click', () => {
+                console.log('IoT-Enabled button clicked!');
+                currentEquipmentScenario = 'iot';
+                renderEquipmentDashboard();
+                console.log('Current scenario after IoT click:', currentEquipmentScenario);
+            });
+
+
+            // Event listener for equipment detail modal close button
+            modalCloseButton.addEventListener('click', closeEquipmentDetailModal);
+            // Close equipment modal if clicked outside
+            equipmentDetailModal.addEventListener('click', (event) => {
+                if (event.target === equipmentDetailModal) {
+                    closeEquipmentDetailModal();
+                }
+            });
+
+            // Event listener for KPI detail modal close button
+            closeKpiModalBtn.addEventListener('click', hideKpiModal);
+            // Close KPI modal if clicked outside
+            kpiModal.addEventListener('click', (event) => {
+                if (event.target === kpiModal) {
+                    hideKpiModal();
+                }
+            });
+
+            // Initial render: start with the equipment tab
+            switchTab('equipment');
         });
-
-        toggleIoTBtn.addEventListener('click', () => {
-            currentScenario = 'iot';
-            renderDashboard();
-        });
-
-        // Event listener for modal close button
-        modalCloseButton.addEventListener('click', closeEquipmentDetailModal);
-
-        // Close modal if clicked outside
-        equipmentDetailModal.addEventListener('click', (event) => {
-            if (event.target === equipmentDetailModal) {
-                closeEquipmentDetailModal();
-            }
-        });
-
-        // Initial render on page load
-        document.addEventListener('DOMContentLoaded', renderDashboard);
     </script>
 </body>
 </html>
